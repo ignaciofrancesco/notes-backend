@@ -42,7 +42,9 @@ let notes = [
 /* ENDPOINTS */
 
 app.get("/", (request, response) => {
-  response.send("<h1>Hello World!!!</h1>");
+  response.send(
+    "<h1>Lic. Oriana Pivato</h1><h2>Consultoría especializada para empresas</h2>"
+  );
 });
 
 app.get("/api/notes", (request, response) => {
