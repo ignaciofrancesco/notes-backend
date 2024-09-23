@@ -1,0 +1,17 @@
+### GET ALL NOTES
+GET http://localhost:3001/api/notes
+
+### GET NOTE BY ID
+GET http://localhost:3001/api/notes/1
+
+### DELETE NOTE BY ID
+DELETE http://localhost:3001/api/notes/1
+
+### CREATE NEW NOTE
+POST http://localhost:3001/api/notes
+Content-Type: application/json
+
+{
+  "content": "My brand new note 2",
+  "important": true
+}
