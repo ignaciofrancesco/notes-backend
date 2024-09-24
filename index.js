@@ -6,6 +6,7 @@ const app = express();
 
 /* MIDDLEWARE */
 
+app.use(express.static("dist"));
 app.use(cors());
 app.use(express.json());
 
@@ -125,7 +126,7 @@ app.use(unknownEndpoint);
 
 /* APP CONFIG */
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
