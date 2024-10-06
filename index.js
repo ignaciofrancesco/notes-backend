@@ -1,15 +1,20 @@
+require("dotenv").config();
 const { log } = require("console");
 const express = require("express");
 const cors = require("cors");
+const Note = require("./models/note");
 
 const app = express();
 
 /* MIDDLEWARE */
 
+// Tells express to serve static files if any, from the "dist" folder.
 app.use(express.static("dist"));
+// Allows the cross origin requests
 app.use(cors());
+// Parses json into js objects --> loads the request with a "body" object, so we can use request.body
 app.use(express.json());
-
+// Logs to console
 const requestLogger = (request, response, next) => {
   console.log("Method: ", request.method);
   console.log("Path: ", request.path);
@@ -17,112 +22,98 @@ const requestLogger = (request, response, next) => {
   console.log("---");
   next();
 };
-
 app.use(requestLogger);
 
 /* DATA */
 
-let notes = [
-  {
-    id: "1",
-    content: "HTML is easy",
-    important: true,
-  },
-  {
-    id: "2",
-    content: "Browser can execute only JavaScript",
-    important: false,
-  },
-  {
-    id: "3",
-    content: "GET and POST are the most important methods of HTTP protocol",
-    important: true,
-  },
-];
-
 /* ENDPOINTS */
 
-app.get("/", (request, response) => {
-  response.send(
-    "<h1>Lic. Oriana Pivato</h1><h2>Consultoría especializada para empresas</h2>"
-  );
-});
-
 app.get("/api/notes", (request, response) => {
-  response.json(notes);
-});
-
-app.get("/api/notes/:id", (request, response) => {
-  const noteId = request.params.id;
-  const note = notes.find((n) => {
-    return n.id === noteId;
+  Note.find({}).then((n) => {
+    response.json(n);
   });
-
-  if (note) {
-    response.json(note);
-  } else {
-    response.statusMessage = `The note ${noteId} cannot be found.`;
-    response.status(404).end();
-  }
 });
 
-app.delete("/api/notes/:id", (request, response) => {
+app.get("/api/notes/:id", (request, response, next) => {
+  Note.findById(request.params.id)
+    .then((note) => {
+      if (!note) {
+        return response.status(404).end();
+      }
+
+      response.json(note);
+    })
+    .catch((error) => next(error));
+});
+
+app.delete("/api/notes/:id", (request, response, next) => {
   const noteId = request.params.id;
-  notes = notes.filter((n) => {
-    return n.id !== noteId;
-  });
-  response.status(204).end();
+
+  Note.findByIdAndDelete(noteId)
+    .then((result) => {
+      console.log(result);
+      response.status(204).end();
+    })
+    .catch((error) => {
+      return next(error);
+    });
 });
-
-const generateId = () => {
-  if (notes.length === 0) {
-    return 1;
-  }
-
-  return (
-    Math.max(
-      ...notes.map((n) => {
-        return Number(n.id);
-      })
-    ) + 1
-  );
-};
 
 app.post("/api/notes", (request, response) => {
-  console.log(notes);
-
   // validate that content property exists
-  const note = request.body;
-  if (!note.content) {
+  const body = request.body;
+  if (!body.content) {
     return response
       .status(400)
       .json({ error: "Property 'content' is missing." });
   }
 
-  // generate new id
-  const newId = generateId();
+  // Create new note using the mongoose model
+  const note = new Note({
+    content: body.content,
+    important: body.important || false,
+  });
 
-  // create new note
-  const newNote = {
-    content: note.content,
-    important: Boolean(note.important) || false,
-    id: newId,
+  // Save note to DB
+  note.save().then((savedNote) => {
+    response.json(savedNote);
+  });
+});
+
+app.put("/api/notes/:id", (request, response, next) => {
+  const noteId = request.params.id;
+
+  const note = {
+    content: request.body.content,
+    important: request.body.important,
   };
 
-  // save new note to notes
-  notes = notes.concat(newNote);
-
-  // produce response with new note
-  response.json(newNote);
+  Note.findByIdAndUpdate(noteId, note, { new: true })
+    .then((updatedNote) => {
+      response.json(updatedNote);
+    })
+    .catch((error) => next(error));
 });
 
 /* MIDDLEWARE 2 */
 
+// Handler for unknown endpoints
 const unknownEndpoint = (request, response, next) => {
   response.status(404).send({ error: "Unkonwn endpoint." });
 };
-
 app.use(unknownEndpoint);
+
+// Handler for requests with result to errors
+const errorHandler = (error, request, response, next) => {
+  console.log("ERROR.", error.message);
+
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "Malformatted id" });
+  }
+
+  next(error);
+};
+app.use(errorHandler);
 
 /* APP CONFIG */
 

@@ -2,16 +2,25 @@
 GET http://localhost:3001/api/notes
 
 ### GET NOTE BY ID
-GET http://localhost:3001/api/notes/1
+GET http://localhost:3001/api/notes/66f736e4a8afe216be9be9da
 
 ### DELETE NOTE BY ID
-DELETE http://localhost:3001/api/notes/1
+DELETE http://localhost:3001/api/notes/66f736e4a8afe216be9be9da
 
 ### CREATE NEW NOTE
 POST http://localhost:3001/api/notes
 Content-Type: application/json
 
 {
-  "content": "My brand new note 2",
+  "content": "My brand new note 7",
+  "important": true
+}
+
+### UPDATE NOTE
+PUT http://localhost:3001/api/notes/66f73756d72ce293988e1541
+Content-Type: application/json
+
+{
+  "content": "CSS is pretty complicated.",
   "important": true
 }
