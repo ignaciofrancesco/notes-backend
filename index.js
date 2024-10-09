@@ -59,10 +59,10 @@ app.delete("/api/notes/:id", (request, response, next) => {
     });
 });
 
-app.post("/api/notes", (request, response) => {
+app.post("/api/notes", (request, response, next) => {
   // validate that content property exists
   const body = request.body;
-  if (!body.content) {
+  if (body.content === undefined) {
     return response
       .status(400)
       .json({ error: "Property 'content' is missing." });
@@ -75,20 +75,28 @@ app.post("/api/notes", (request, response) => {
   });
 
   // Save note to DB
-  note.save().then((savedNote) => {
-    response.json(savedNote);
-  });
+  note
+    .save()
+    .then((savedNote) => {
+      response.json(savedNote);
+    })
+    .catch((error) => next(error));
 });
 
 app.put("/api/notes/:id", (request, response, next) => {
   const noteId = request.params.id;
+  const { content, important } = request.body;
 
   const note = {
-    content: request.body.content,
-    important: request.body.important,
+    content: content,
+    important: important,
   };
 
-  Note.findByIdAndUpdate(noteId, note, { new: true })
+  Note.findByIdAndUpdate(noteId, note, {
+    new: true,
+    runValidators: true,
+    context: "query",
+  })
     .then((updatedNote) => {
       response.json(updatedNote);
     })
@@ -109,6 +117,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === "CastError") {
     return response.status(400).send({ error: "Malformatted id" });
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: error.message });
   }
 
   next(error);
