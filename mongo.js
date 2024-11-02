@@ -7,12 +7,13 @@ if (process.argv.length < 3) {
 
 const password = process.argv[2];
 
-const url = `mongodb+srv://ignaciofrancesco:${password}@cluster0.rwj6k.mongodb.net/NotesApp?retryWrites=true&w=majority&appName=Cluster0`;
+// const url = `mongodb+srv://ignaciofrancesco:${password}@cluster0.rwj6k.mongodb.net/NotesApp?retryWrites=true&w=majority&appName=Cluster0`;
+const urlTest = `mongodb+srv://ignaciofrancesco:${password}@cluster0.rwj6k.mongodb.net/TestNotesApp?retryWrites=true&w=majority&appName=Cluster0`;
 
 mongoose.set("strictQuery", false);
 
 // Connect to DB
-mongoose.connect(url);
+mongoose.connect(urlTest);
 
 // Declare a Schema
 const noteSchema = new mongoose.Schema({
@@ -30,14 +31,14 @@ Note.find({ important: true }).then((result) => {
   mongoose.connection.close();
 });
 
-/* // Use the Model to create a new Document
+// Use the Model to create a new Document
 const note = new Note({
-  content: "JS is the best for interactivity.",
+  content: "MongoDb allows to save data quickly.",
   important: true,
 });
 
 // Save the Document to DB
-note.save().then((result) => {
+note.save().then(() => {
   console.log("note saved!");
   mongoose.connection.close();
-}); */
+});
