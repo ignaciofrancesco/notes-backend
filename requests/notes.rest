@@ -12,8 +12,9 @@ POST http://localhost:3001/api/notes
 Content-Type: application/json
 
 {
-  "content": "My brand new note 7",
-  "important": true
+  "content": "go to supermarket",
+  "important": false,
+  "userId": "672acb951cb2224847eae9d2"
 }
 
 ### UPDATE NOTE
